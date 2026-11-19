@@ -1,0 +1,29 @@
+.timer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.track {
+  flex: 1;
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: rgb(0 0 0 / 30%);
+}
+
+.track > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 250ms linear;
+}
+
+.low strong {
+  color: var(--danger);
+}
+
+.low .track > span {
+  background: var(--danger);
+}

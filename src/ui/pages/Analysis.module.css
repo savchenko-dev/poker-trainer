@@ -1,0 +1,108 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 640px;
+}
+
+.tools {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.tools > :not(input) {
+  display: grid;
+  place-items: center;
+}
+
+.tools button:disabled {
+  opacity: 0.45;
+}
+
+.list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.hand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.cards {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.meta {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.meta span {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.result {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.won {
+  color: var(--ok);
+}
+
+.lost {
+  color: var(--miss);
+}
+
+.delete {
+  border: 0;
+  border-radius: 50%;
+  font-size: var(--fs-md);
+  color: var(--text-muted);
+  background: rgb(0 0 0 / 20%);
+  cursor: pointer;
+}
+
+.delete:active {
+  transform: scale(0.94);
+}
+
+.handNote {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.tips {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tips li {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: inset 4px 0 0 var(--accent);
+}

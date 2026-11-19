@@ -1,0 +1,28 @@
+.card {
+  display: block;
+  user-select: none;
+  flex: none;
+  height: auto;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 35%));
+}
+
+.sm { width: 40px; }
+.fit { width: clamp(48px, calc((100vw - 88px) / 5.4), 88px); }
+
+.face {
+  fill: #fff;
+  stroke: #c9ccd1;
+  stroke-width: 1.5;
+}
+
+.rank {
+  font: 800 34px/1 var(--font-card);
+}
+
+.cornerSuit {
+  font: 26px/1 var(--font-card);
+}
+
+.pip {
+  font: 64px/1 var(--font-card);
+}

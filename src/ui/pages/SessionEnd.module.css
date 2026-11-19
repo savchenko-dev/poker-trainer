@@ -1,0 +1,143 @@
+.end {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 640px;
+}
+
+.title {
+  margin: 0;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.stats > div {
+  display: grid;
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  text-align: center;
+  background: var(--surface);
+}
+
+.stats strong {
+  font-size: var(--fs-xl);
+  color: var(--accent);
+}
+
+.stats span {
+  color: var(--text-muted);
+}
+
+.review {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review li {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: rgb(0 0 0 / 22%);
+  box-shadow: inset 4px 0 0 currentColor;
+}
+
+.review p {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+}
+
+.ok {
+  color: var(--ok);
+}
+
+.miss {
+  color: var(--miss);
+}
+
+.review li > div {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-weight: 800;
+  color: var(--felt-dark);
+}
+
+.ok .icon {
+  background: var(--ok);
+}
+
+.miss .icon {
+  background: var(--miss);
+}
+
+.answers {
+  color: var(--text-muted);
+}
+
+.answers b {
+  color: var(--text);
+}
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.links {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.link {
+  display: grid;
+  place-items: center;
+  min-height: var(--tap);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--text-muted);
+}
+
+.link:active {
+  transform: scale(0.95);
+}
+
+.why summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+}

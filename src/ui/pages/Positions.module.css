@@ -1,0 +1,65 @@
+.page {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 640px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: 50%;
+  font-size: var(--fs-lg);
+  color: var(--text);
+  text-decoration: none;
+  background: var(--surface);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fs-lg);
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--space-2);
+}
+
+.tab {
+  min-width: 0;
+  min-height: var(--tap-primary);
+  padding: 0;
+  border: 2px solid rgb(255 255 255 / 20%);
+  border-radius: var(--radius);
+  font-weight: 800;
+  color: var(--text);
+  background: var(--surface);
+  touch-action: manipulation;
+}
+
+.tab:active {
+  transform: scale(0.96);
+}
+
+.tab[aria-selected='true'] {
+  border-color: var(--accent);
+  color: var(--felt-dark);
+  background: var(--accent);
+}
+
+.panel {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.note {
+  margin: 0;
+}

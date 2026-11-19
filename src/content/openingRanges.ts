@@ -1,0 +1,121 @@
+import type { Position } from '../engine/types';
+
+export type GridCell = 'R' | '.';
+
+export type HandChart = readonly [
+  string, string, string, string, string, string, string,
+  string, string, string, string, string, string,
+];
+
+export const RANK_ORDER = 'AKQJT98765432';
+
+export const openingRanges: Record<Position, { grid: HandChart; note: string }> = {
+  UTG: {
+    grid: [
+      'RRRRRRR..R...',
+      'RRRRR........',
+      'RRRRR........',
+      'RR.RR........',
+      'R...RR.......',
+      '.....RR......',
+      '......R......',
+      '.......R.....',
+      '........R....',
+      '.........R...',
+      '.............',
+      '.............',
+      '.............',
+    ],
+    note: 'You act first and five players still act after you, so open only strong hands: pairs 55 and up, big aces and the best suited broadways (two cards ten or higher). Fold everything else.',
+  },
+  MP: {
+    grid: [
+      'RRRRRRRRRRRRR',
+      'RRRRRR.......',
+      'RRRRRR.......',
+      'RRRRRR.......',
+      'R...RR.......',
+      '.....RR......',
+      '......RR.....',
+      '.......R.....',
+      '........R....',
+      '.........R...',
+      '..........R..',
+      '.............',
+      '.............',
+    ],
+    note: 'One player fewer is left behind you than from UTG, so add small pairs, all suited aces and a few more suited connectors.',
+  },
+  CO: {
+    grid: [
+      'RRRRRRRRRRRRR',
+      'RRRRRRRR.....',
+      'RRRRRRR......',
+      'RRRRRRR......',
+      'RRRRRRR......',
+      'R....RRR.....',
+      'R.....RRR....',
+      '.......RR....',
+      '........RR...',
+      '.........R...',
+      '..........R..',
+      '...........R.',
+      '............R',
+    ],
+    note: 'Only the button and the blinds are left, so you can open about a quarter of hands, including more offsuit broadways and suited connectors.',
+  },
+  BTN: {
+    grid: [
+      'RRRRRRRRRRRRR',
+      'RRRRRRRRRRRRR',
+      'RRRRRRRRRRR..',
+      'RRRRRRRRR....',
+      'RRRRRRRRR....',
+      'RRRRRRRRR....',
+      'RR..RRRRRR...',
+      'R.....RRRRR..',
+      'R.......RRR..',
+      'R........RRR.',
+      'R.........RR.',
+      'R..........R.',
+      'R...........R',
+    ],
+    note: 'The button acts last on every street after the flop, so it is the best seat to steal the blinds: open almost half of all hands.',
+  },
+  SB: {
+    grid: [
+      'RRRRRRRRRRRRR',
+      'RRRRRRRRRRR..',
+      'RRRRRRRRR....',
+      'RRRRRRRR.....',
+      'RRRRRRRR.....',
+      'RRRRRRRR.....',
+      'RR....RRR....',
+      'RR.....RRR...',
+      'R.......RR...',
+      'R........RR..',
+      'R.........R..',
+      'R..........R.',
+      'R...........R',
+    ],
+    note: 'Only the big blind is left, but you will play out of position after the flop, so raise a wide range or fold. Avoid just completing.',
+  },
+  BB: {
+    grid: [
+      'RRRRRRRRRRRRR',
+      'RRRRRRRRRRRRR',
+      'RRRRRRRRRRRRR',
+      'RRRRRRRRRR...',
+      'RRRRRRRRR....',
+      'RRRRRRRRRR...',
+      'RRRRRRRRRR...',
+      'RR...RRRRRR..',
+      'R......RRRRR.',
+      'R.......RRRR.',
+      'R.........RR.',
+      'R..........R.',
+      'R...........R',
+    ],
+    note: 'The big blind never opens: everyone has acted before you. This grid shows what to continue with against a single raise, since you already have 1 big blind in the pot and close the action.',
+  },
+};

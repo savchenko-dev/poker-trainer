@@ -1,0 +1,46 @@
+.panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: rgb(0 0 0 / 22%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%);
+}
+
+.hand {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.seats {
+  display: grid;
+  flex: 1 1 120px;
+  gap: 2px;
+  font-size: var(--fs-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.seats li {
+  display: flex;
+  gap: var(--space-2);
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.seats b {
+  min-width: 2.6em;
+}
+
+.fold {
+  color: var(--text-muted);
+}
+
+.hero {
+  font-weight: 700;
+  color: var(--felt-dark);
+  background: var(--accent);
+}
