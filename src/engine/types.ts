@@ -107,6 +107,6 @@ export interface Session {
   finishedAt?: number;
 }
 
-export interface DrillTypeStats { attempts: number; correct: number; recentResults: boolean[]; level: Level }
+export interface DrillTypeStats { attempts: number; correct: number; recentResults: boolean[]; level: Level; updatedAt: number }
 
-export interface Stats { byType: Record<DrillType, DrillTypeStats>; sessionDays: string[] }
+export interface Stats { byType: Record<DrillType, DrillTypeStats>; sessionDays: string[]; daysUpdatedAt: number }

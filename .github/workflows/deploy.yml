@@ -1,0 +1,41 @@
+name: deploy
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency: deploy
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: ssh setup
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf 'Host mycloud\n  HostName %s\n  User %s\n  IdentityFile ~/.ssh/deploy_key\n' "$HOST" "$USER" > ~/.ssh/config
+      - name: upload
+        run: |
+          ssh mycloud 'mkdir -p ~/poker-trainer'
+          rsync -az --delete dist/ mycloud:~/poker-trainer/dist/
+          rsync -az --delete --exclude node_modules --exclude data server/ mycloud:~/poker-trainer/server/
+          rsync -az deploy/docker-compose.yml deploy/nginx.conf deploy/remote-deploy.sh mycloud:~/poker-trainer/
+      - name: restart
+        run: ssh mycloud 'sh ~/poker-trainer/remote-deploy.sh'
+      - name: smoke
+        run: |
+          curl -fsS https://poker.cloud.savchenko.dev/api/health
+          curl -fsS -o /dev/null https://poker.cloud.savchenko.dev/

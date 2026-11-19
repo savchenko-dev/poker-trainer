@@ -1,9 +1,11 @@
+import { useEffect } from 'react';
 import { useLang } from './i18n/LanguageContext';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { HandsProvider } from './state/HandsContext';
 import { SessionProvider } from './state/SessionContext';
 import { SettingsProvider } from './state/SettingsContext';
 import { StatsProvider } from './state/StatsContext';
+import { startSync } from './state/sync';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
 import { Analysis } from './ui/pages/Analysis';
 import { CheatSheet } from './ui/pages/CheatSheet';
@@ -19,6 +21,7 @@ import { Trainer } from './ui/pages/Trainer';
 
 export function App() {
   const { t } = useLang();
+  useEffect(startSync, []);
   return (
     <BrowserRouter>
       <SettingsProvider>

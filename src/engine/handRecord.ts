@@ -28,6 +28,7 @@ export interface HandRecord {
   resultBb: number;
   tags: HandTag[];
   note?: string;
+  updatedAt: number;
 }
 
 export interface PreflopMismatch { record: HandRecord; kind: 'openOutside' | 'foldInside' | 'limpInside'; hand: string }
@@ -102,6 +103,7 @@ function parseRecord(value: unknown): HandRecord | null {
     resultBb: finite(raw.resultBb),
     tags: HAND_TAGS.filter((tag) => Array.isArray(raw.tags) && raw.tags.includes(tag)),
     ...(typeof raw.note === 'string' && raw.note ? { note: raw.note.slice(0, 500) } : {}),
+    updatedAt: typeof raw.updatedAt === 'number' && Number.isFinite(raw.updatedAt) ? raw.updatedAt : Date.parse(raw.date) || Date.now(),
   };
 }
 

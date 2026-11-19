@@ -1,0 +1,46 @@
+services:
+  poker-trainer:
+    image: nginx:alpine
+    container_name: poker-trainer
+    restart: unless-stopped
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - coolify
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=coolify
+      - traefik.http.routers.poker-trainer.rule=Host(`poker.cloud.savchenko.dev`)
+      - traefik.http.routers.poker-trainer.entrypoints=https
+      - traefik.http.routers.poker-trainer.tls=true
+      - traefik.http.routers.poker-trainer.tls.certresolver=letsencrypt
+      - traefik.http.routers.poker-trainer-http.rule=Host(`poker.cloud.savchenko.dev`)
+      - traefik.http.routers.poker-trainer-http.entrypoints=http
+      - traefik.http.routers.poker-trainer-http.middlewares=poker-trainer-https
+      - traefik.http.middlewares.poker-trainer-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.poker-trainer-https.redirectscheme.permanent=true
+      - traefik.http.services.poker-trainer.loadbalancer.server.port=80
+  poker-sync:
+    build: ./server
+    image: poker-sync:latest
+    container_name: poker-sync
+    restart: unless-stopped
+    environment:
+      - DATA_DIR=/app/data
+    volumes:
+      - ./data:/app/data
+    networks:
+      - coolify
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=coolify
+      - traefik.http.routers.poker-sync.rule=Host(`poker.cloud.savchenko.dev`) && PathPrefix(`/api/`)
+      - traefik.http.routers.poker-sync.priority=100
+      - traefik.http.routers.poker-sync.entrypoints=https
+      - traefik.http.routers.poker-sync.tls=true
+      - traefik.http.routers.poker-sync.tls.certresolver=letsencrypt
+      - traefik.http.services.poker-sync.loadbalancer.server.port=8787
+networks:
+  coolify:
+    external: true

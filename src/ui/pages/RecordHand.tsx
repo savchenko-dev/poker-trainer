@@ -133,6 +133,7 @@ export function RecordHand() {
       streets: Object.fromEntries(streets.map((street, index) => [HAND_STREETS[index], street])),
       resultBb: result,
       tags,
+      updatedAt: Date.now(),
     };
     add(record);
     if (!next) {
