@@ -14,7 +14,8 @@ export const LanguageContext = createContext<LanguageValue>({ lang: 'en', setLan
 function initialLang(): Lang {
   const saved = loadItem('lang');
   if (saved === 'en' || saved === 'ru') return saved;
-  return navigator.language.startsWith('ru') ? 'ru' : 'en';
+  const preferred = navigator.languages?.length ? navigator.languages : [navigator.language];
+  return preferred.some((tag) => tag.toLowerCase().startsWith('ru')) ? 'ru' : 'en';
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
