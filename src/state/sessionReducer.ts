@@ -1,4 +1,4 @@
-import { buildDrill, buildMixedSession, buildScenarioDrills, buildStepChain, hitChanceStep } from '../engine/drills';
+import { buildDrills, buildMixedSession, buildScenarioDrills, buildStepChain, hitChanceStep } from '../engine/drills';
 import { mulberry32 } from '../engine/rng';
 import { DRILL_TYPES, POSTFLOP_TYPES, type Answer, type DrillType, type Level, type Session } from '../engine/types';
 
@@ -35,7 +35,7 @@ function startSession(key: TrainerKey, now: number, levels: Record<DrillType, Le
   const drills =
     key === 'scenario'
       ? buildScenarioDrills(levels.scenario, SESSION_LENGTH, rng)
-      : Array.from({ length: SESSION_LENGTH }, () => buildDrill(key, levels[key], rng));
+      : buildDrills(key, levels[key], SESSION_LENGTH, rng);
   return { mode: 'single', drillType: key, drills, answers: [], startedAt: now };
 }
 

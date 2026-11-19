@@ -3,7 +3,7 @@ import { openingRanges } from '../content/openingRanges';
 import { scenarios } from '../content/scenarios';
 import { oddsRatio } from '../engine/explain';
 import type { HandAction, HandStreet, HandTag, Tip } from '../engine/handRecord';
-import type { Card, DrawKind, DrillType, ExplanationParams, Position, PreflopAction, PromptParams, Suit } from '../engine/types';
+import type { Card, DrawKind, DrillType, ExplanationParams, OutsHand, OutsPart, Position, PreflopAction, PromptParams, Rank, Suit } from '../engine/types';
 
 export interface ExplanationText { formula: string; numbers: string; result: string; text: string; rule?: string }
 
@@ -12,40 +12,109 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 const RANK_NAMES = ['Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King', 'Ace'];
 const SUIT_NAMES: Record<Suit, string> = { s: 'spades', h: 'hearts', d: 'diamonds', c: 'clubs' };
 
+const RANK_PLURALS = ['twos', 'threes', 'fours', 'fives', 'sixes', 'sevens', 'eights', 'nines', 'tens', 'jacks', 'queens', 'kings', 'aces'];
+
 const GOALS: Record<DrawKind, string> = {
   flushDraw: 'a flush',
   oesd: 'a straight',
   gutshot: 'a straight',
+  doubleGutshot: 'a straight',
+  flushGutshot: 'a straight or a flush',
+  flushOesd: 'a straight or a flush',
   comboDraw: 'a straight or a flush',
   overcards: 'a pair higher than every board card',
-  pairPlusDraw: 'two pair or better',
+  overcardGutshot: 'a straight or a pair higher than every board card',
+  overcardFlush: 'a flush or a pair higher than every board card',
+  pairPlusDraw: 'a flush, two pair or trips',
+  pocketPairToSet: 'a set',
+  twoPairToFullHouse: 'a full house',
+  setToFullHouse: 'a full house or quads',
+  pairToTwoPair: 'two pair or trips',
+  oesdPair: 'a straight, two pair or trips',
 };
 
 const OUTS_HINTS: Record<DrawKind, string> = {
-  flushDraw: 'You see 4 cards of one suit. A suit has 13 cards, so 13 − 4 = 9 cards make your flush.',
-  oesd: 'You have 4 ranks in a row, open at both ends. 4 cards of the rank below + 4 of the rank above = 8.',
-  gutshot: 'One rank fills the gap inside your straight, and there are 4 cards of that rank.',
+  flushDraw: 'A suit has 13 cards. You see 4 of yours, so 13 − 4 = 9 are left.',
+  oesd: '4 ranks in a row, open at both ends: 4 cards of the rank below + 4 of the rank above = 8.',
+  gutshot: 'One rank fills the gap inside your straight, and that rank has 4 cards.',
+  doubleGutshot: 'Two different ranks each fill an inside straight: 4 + 4 = 8.',
+  flushGutshot: '9 cards of your suit, plus the gutshot cards of the other 3 suits: 9 + 3 = 12.',
+  flushOesd: '9 cards of your suit, plus the straight cards of the other 3 suits: 9 + 6 = 15.',
   comboDraw: 'Add the cards that make your flush to the cards that make your straight. A card that does both counts once.',
   overcards: 'Each of your 2 high cards has 3 more cards of the same rank left: 2 × 3 = 6.',
-  pairPlusDraw: '9 cards make your flush, 2 make three of a kind and 3 pair your other card: 9 + 2 + 3 = 14.',
+  overcardGutshot: '4 cards fill your straight, and 3 more pair your overcard: 4 + 3 = 7.',
+  overcardFlush: '9 cards of your suit, and 3 more pair your overcard: 9 + 3 = 12.',
+  pairPlusDraw: '9 cards make your flush, 2 make trips and 3 pair your other card: 9 + 2 + 3 = 14.',
+  pocketPairToSet: 'Only 2 cards of your pocket pair rank are left, and either one makes a set.',
+  twoPairToFullHouse: 'Each of your 2 paired ranks has 2 cards left: 2 + 2 = 4.',
+  setToFullHouse: 'Each other board rank has 3 cards left to fill up, plus the last card of your rank for quads.',
+  pairToTwoPair: '2 cards give you trips, and 3 pair your other hole card: 2 + 3 = 5.',
+  oesdPair: '8 cards make your straight, 2 give trips and 3 pair your other card: 8 + 2 + 3 = 13.',
 };
 
 const DRAW_NAMES: Record<DrawKind, string> = {
   flushDraw: 'Flush draw',
   oesd: 'Open-ended straight draw',
   gutshot: 'Gutshot',
+  doubleGutshot: 'Double gutshot',
+  flushGutshot: 'Flush draw + gutshot',
+  flushOesd: 'Flush draw + open-ended straight draw',
   comboDraw: 'Combo draw',
   overcards: 'Overcards',
-  pairPlusDraw: 'Pair + draw',
+  overcardGutshot: 'Overcard + gutshot',
+  overcardFlush: 'Overcard + flush draw',
+  pairPlusDraw: 'Pair + flush draw',
+  pocketPairToSet: 'Pocket pair',
+  twoPairToFullHouse: 'Two pair',
+  setToFullHouse: 'Set',
+  pairToTwoPair: 'One pair',
+  oesdPair: 'Pair + open-ended straight draw',
 };
 
 const TIP_DRAWS: Record<DrawKind, string> = {
   flushDraw: 'flush draws',
   oesd: 'open-ended straight draws',
   gutshot: 'gutshots',
+  doubleGutshot: 'double gutshots',
+  flushGutshot: 'flush draws with a gutshot',
+  flushOesd: 'flush draws with an open-ended straight draw',
   comboDraw: 'combo draws',
   overcards: 'overcards',
-  pairPlusDraw: 'pair plus draws',
+  overcardGutshot: 'an overcard and a gutshot',
+  overcardFlush: 'an overcard and a flush draw',
+  pairPlusDraw: 'pair plus flush draws',
+  pocketPairToSet: 'pocket pairs',
+  twoPairToFullHouse: 'two pair',
+  setToFullHouse: 'sets',
+  pairToTwoPair: 'one pair',
+  oesdPair: 'a pair and an open-ended straight draw',
+};
+
+const OUTS_HANDS: Record<Exclude<OutsHand, 'flush'>, string> = {
+  straight: 'your straight',
+  set: 'your set',
+  trips: 'trips',
+  twoPair: 'two pair',
+  pair: 'a pair above the board',
+  fullHouse: 'a full house',
+  quads: 'quads',
+};
+
+const rankCards = (count: number, ranks: Rank[], prefix: string) =>
+  ranks.length === 1
+    ? `${count} ${prefix}${count === 1 ? RANK_NAMES[ranks[0]! - 2]!.toLowerCase() : RANK_PLURALS[ranks[0]! - 2]}`
+    : `${count} ${prefix}cards (${ranks.map((rank) => RANK_PLURALS[rank - 2]).join(' or ')})`;
+
+const outsPart = ({ hand, count, ranks, suit }: OutsPart, flushSuit: Suit | undefined) => {
+  if (hand === 'flush') return `${count} ${SUIT_NAMES[suit]} make your flush`;
+  const prefix = hand === 'straight' && flushSuit ? `non-${SUIT_NAMES[flushSuit].slice(0, -1)} ` : '';
+  return `${rankCards(count, ranks, prefix)} ${count === 1 ? 'makes' : 'make'} ${OUTS_HANDS[hand]}`;
+};
+
+const outsCount = (parts: OutsPart[], outs: number) => {
+  const flushSuit = parts.find((part) => part.hand === 'flush')?.suit;
+  const text = parts.map((part) => outsPart(part, flushSuit)).join(', ');
+  return parts.length > 1 ? `${text}: ${parts.map((part) => part.count).join(' + ')} = ${outs}.` : `${text}.`;
 };
 
 const potLine = ({ pot, bet }: { pot: number; bet: number }) => `The pot is ${pot}, including your opponent's bet of ${bet}. You must call ${bet}.`;
@@ -64,8 +133,8 @@ const prompts: { [K in DrillType]: (p: PromptParams[K]) => string } = {
 
 const explanations: { [K in DrillType]: (p: ExplanationParams[K]) => ExplanationText } = {
   outs: (p) => ({
-    formula: 'Outs = unseen cards that complete your hand',
-    numbers: OUTS_HINTS[p.drawKind],
+    formula: OUTS_HINTS[p.drawKind],
+    numbers: outsCount(p.parts, p.outs),
     result: `${p.outs} outs`,
     text: `Any one of the cards above gives you ${GOALS[p.drawKind]}.`,
   }),
@@ -295,9 +364,14 @@ export const en = {
       pairToTwoPair: 'Pair to two pair or trips',
       overcards: 'Two overcards',
       setToBoat: 'Set to a full house or quads',
+      overcardGutshot: 'Overcard + gutshot',
       oesd: 'Open-ended straight draw',
+      doubleGutshot: 'Double gutshot',
       flushDraw: 'Flush draw',
       flushGutshot: 'Flush draw + gutshot',
+      overcardFlush: 'Overcard + flush draw',
+      oesdPair: 'Pair + open-ended straight draw',
+      pairFlush: 'Pair + flush draw',
       flushOesd: 'Flush draw + open-ended straight draw',
     } as Record<CommonDraw, string>,
     example: (hand: string, board: string) => `${hand} on ${board}`,

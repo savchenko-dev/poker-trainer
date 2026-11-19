@@ -2,7 +2,7 @@ import { openingRangeNotesRu } from '../content/openingRangesRu';
 import { scenarioExplanationsRu } from '../content/scenarios/explanationsRu';
 import { oddsRatio } from '../engine/explain';
 import type { HandStreet } from '../engine/handRecord';
-import type { DrawKind, HandKind, Position, Suit } from '../engine/types';
+import type { DrawKind, HandKind, OutsHand, OutsPart, Position, Suit } from '../engine/types';
 import type { Dict } from './en';
 
 export function ruPlural(n: number, one: string, few: string, many: string, fraction = few): string {
@@ -22,40 +22,109 @@ const HAND_KINDS: Record<HandKind, string> = { pair: 'пара', suited: 'одн
 const STREETS: Record<HandStreet, string> = { preflop: 'префлоп', flop: 'флоп', turn: 'тёрн', river: 'ривер' };
 const STREETS_ON: Record<HandStreet, string> = { preflop: 'префлопе', flop: 'флопе', turn: 'тёрне', river: 'ривере' };
 
+const RANK_PLURALS = ['двойки', 'тройки', 'четвёрки', 'пятёрки', 'шестёрки', 'семёрки', 'восьмёрки', 'девятки', 'десятки', 'валеты', 'дамы', 'короли', 'тузы'];
+const SUIT_ADJECTIVE: Record<Suit, string> = { s: 'пиковой', h: 'червовой', d: 'бубновой', c: 'трефовой' };
+
 const GOALS: Record<DrawKind, string> = {
   flushDraw: 'флеш',
   oesd: 'стрит',
   gutshot: 'стрит',
+  doubleGutshot: 'стрит',
+  flushGutshot: 'стрит или флеш',
+  flushOesd: 'стрит или флеш',
   comboDraw: 'стрит или флеш',
   overcards: 'пару старше всех карт борда',
-  pairPlusDraw: 'две пары или сильнее',
+  overcardGutshot: 'стрит или пару старше всех карт борда',
+  overcardFlush: 'флеш или пару старше всех карт борда',
+  pairPlusDraw: 'флеш, две пары или трипс',
+  pocketPairToSet: 'сет',
+  twoPairToFullHouse: 'фулл-хаус',
+  setToFullHouse: 'фулл-хаус или каре',
+  pairToTwoPair: 'две пары или трипс',
+  oesdPair: 'стрит, две пары или трипс',
 };
 
 const OUTS_HINTS: Record<DrawKind, string> = {
-  flushDraw: 'Ты видишь 4 карты одной масти. В масти 13 карт, значит 13 − 4 = 9 карт собирают флеш.',
-  oesd: 'У тебя 4 карты подряд, стрит открыт с двух сторон. 4 карты снизу + 4 сверху = 8.',
+  flushDraw: 'В масти 13 карт. 4 карты своей масти ты видишь, значит осталось 13 − 4 = 9.',
+  oesd: '4 карты подряд, стрит открыт с двух сторон: 4 карты снизу + 4 сверху = 8.',
   gutshot: 'Стрит закрывает один ранг посередине, а карт этого ранга 4.',
+  doubleGutshot: 'Два разных ранга закрывают по стриту с дыркой: 4 + 4 = 8.',
+  flushGutshot: '9 карт твоей масти, плюс карты на гатшот трёх других мастей: 9 + 3 = 12.',
+  flushOesd: '9 карт твоей масти, плюс карты на стрит трёх других мастей: 9 + 6 = 15.',
   comboDraw: 'Сложи карты на флеш и карты на стрит. Карту, которая даёт и то и другое, считай один раз.',
   overcards: 'К каждой из двух твоих старших карт осталось ещё по 3 карты того же ранга: 2 × 3 = 6.',
-  pairPlusDraw: '9 карт дают флеш, 2 дают сет, ещё 3 спаривают вторую карту: 9 + 2 + 3 = 14.',
+  overcardGutshot: '4 карты закрывают стрит, ещё 3 спаривают твою старшую карту: 4 + 3 = 7.',
+  overcardFlush: '9 карт твоей масти, ещё 3 спаривают твою старшую карту: 9 + 3 = 12.',
+  pairPlusDraw: '9 карт дают флеш, 2 дают трипс, ещё 3 спаривают вторую карту: 9 + 2 + 3 = 14.',
+  pocketPairToSet: 'Карт твоего ранга осталось только 2, и любая из них даёт сет.',
+  twoPairToFullHouse: 'К каждой из двух твоих пар осталось по 2 карты: 2 + 2 = 4.',
+  setToFullHouse: 'К каждой другой карте борда осталось по 3 карты на фулл-хаус, и ещё последняя карта твоего ранга даёт каре.',
+  pairToTwoPair: '2 карты дают трипс, ещё 3 спаривают вторую карту: 2 + 3 = 5.',
+  oesdPair: '8 карт дают стрит, 2 дают трипс, ещё 3 спаривают вторую карту: 8 + 2 + 3 = 13.',
 };
 
 const DRAW_NAMES: Record<DrawKind, string> = {
   flushDraw: 'Флеш-дро',
   oesd: 'Двустороннее стрит-дро',
   gutshot: 'Гатшот',
+  doubleGutshot: 'Двойной гатшот',
+  flushGutshot: 'Флеш-дро + гатшот',
+  flushOesd: 'Флеш-дро + двустороннее стрит-дро',
   comboDraw: 'Комбо-дро',
   overcards: 'Оверкарты',
-  pairPlusDraw: 'Пара + дро',
+  overcardGutshot: 'Оверкарта + гатшот',
+  overcardFlush: 'Оверкарта + флеш-дро',
+  pairPlusDraw: 'Пара + флеш-дро',
+  pocketPairToSet: 'Карманная пара',
+  twoPairToFullHouse: 'Две пары',
+  setToFullHouse: 'Сет',
+  pairToTwoPair: 'Пара',
+  oesdPair: 'Пара + двустороннее стрит-дро',
 };
 
 const TIP_DRAWS: Record<DrawKind, string> = {
   flushDraw: 'флеш-дро',
   oesd: 'двусторонним стрит-дро',
   gutshot: 'гатшотом',
+  doubleGutshot: 'двойным гатшотом',
+  flushGutshot: 'флеш-дро и гатшотом',
+  flushOesd: 'флеш-дро и двусторонним стрит-дро',
   comboDraw: 'комбо-дро',
   overcards: 'оверкартами',
-  pairPlusDraw: 'парой с дро',
+  overcardGutshot: 'оверкартой и гатшотом',
+  overcardFlush: 'оверкартой и флеш-дро',
+  pairPlusDraw: 'парой и флеш-дро',
+  pocketPairToSet: 'карманной парой',
+  twoPairToFullHouse: 'двумя парами',
+  setToFullHouse: 'сетом',
+  pairToTwoPair: 'парой',
+  oesdPair: 'парой и двусторонним стрит-дро',
+};
+
+const OUTS_HANDS: Record<Exclude<OutsHand, 'flush'>, string> = {
+  straight: 'стрит',
+  set: 'сет',
+  trips: 'трипс',
+  twoPair: 'две пары',
+  pair: 'пару старше борда',
+  fullHouse: 'фулл-хаус',
+  quads: 'каре',
+};
+
+const cardsWord = (n: number) => `${n} ${ruPlural(n, 'карта', 'карты', 'карт')}`;
+
+const outsPart = ({ hand, count, ranks, suit }: OutsPart, flushSuit: Suit | undefined) => {
+  const give = ruPlural(count, 'даёт', 'дают', 'дают');
+  if (hand === 'flush') return `${cardsWord(count)} ${SUIT_GENITIVE[suit]} ${give} флеш`;
+  const other = hand === 'straight' && flushSuit ? ` не ${SUIT_ADJECTIVE[flushSuit]} масти` : '';
+  const names = count === 1 ? RANK_NAMES[ranks[0]! - 2]!.toLowerCase() : ranks.map((rank) => RANK_PLURALS[rank - 2]).join(' или ');
+  return `${cardsWord(count)}${other} ${give} ${OUTS_HANDS[hand]} (${names})`;
+};
+
+const outsCount = (parts: OutsPart[], outs: number) => {
+  const flushSuit = parts.find((part) => part.hand === 'flush')?.suit;
+  const text = parts.map((part) => outsPart(part, flushSuit)).join(', ');
+  return parts.length > 1 ? `${text}: ${parts.map((part) => part.count).join(' + ')} = ${outs}.` : `${text}.`;
 };
 
 const potLine = ({ pot, bet }: { pot: number; bet: number }) => `В банке ${pot}, включая ставку оппонента ${bet}. Колл стоит ${bet}.`;
@@ -100,8 +169,8 @@ export const ru: Dict = {
   },
   explanations: {
     outs: (p) => ({
-      formula: 'Ауты = невидимые карты, которые собирают твою руку',
-      numbers: OUTS_HINTS[p.drawKind],
+      formula: OUTS_HINTS[p.drawKind],
+      numbers: outsCount(p.parts, p.outs),
       result: outsWord(p.outs),
       text: `Любая из этих карт даёт тебе ${GOALS[p.drawKind]}.`,
     }),
@@ -306,9 +375,14 @@ export const ru: Dict = {
       pairToTwoPair: 'Пара → две пары или трипс',
       overcards: 'Две оверкарты',
       setToBoat: 'Сет → фулл-хаус или каре',
+      overcardGutshot: 'Оверкарта + гатшот',
       oesd: 'Двустороннее стрит-дро',
+      doubleGutshot: 'Двойной гатшот',
       flushDraw: 'Флеш-дро',
       flushGutshot: 'Флеш-дро + гатшот',
+      overcardFlush: 'Оверкарта + флеш-дро',
+      oesdPair: 'Пара + двустороннее стрит-дро',
+      pairFlush: 'Пара + флеш-дро',
       flushOesd: 'Флеш-дро + двустороннее стрит-дро',
     },
     example: (hand, board) => `${hand} на ${board}`,

@@ -1,6 +1,9 @@
 import { cellLabel, handKind, isRaise } from './handClass';
+import { evaluate, HandCategory } from './handEval';
 import { exactHitChance, potOdds, ruleOf2And4, toPercent } from './odds';
-import type { Card, Explanation, Position, Scenario, Situation } from './types';
+import type { Card, Explanation, OutsHand, OutsPart, Position, Scenario, Situation } from './types';
+
+const OUTS_HANDS: OutsHand[] = ['flush', 'straight', 'set', 'trips', 'twoPair', 'pair', 'fullHouse', 'quads'];
 
 export function unseenCards(board: readonly Card[]): number {
   return 52 - 2 - board.length;
@@ -18,8 +21,30 @@ export function potOddsPercent(situation: Situation): number {
   return toPercent(potOdds(situation.betToCall, situation.pot));
 }
 
+function outsHand(hero: readonly Card[], board: readonly Card[], card: Card): OutsHand {
+  const { category } = evaluate([...hero, ...board, card]);
+  if (category === HandCategory.Flush || category === HandCategory.StraightFlush) return 'flush';
+  if (category === HandCategory.Straight) return 'straight';
+  if (category === HandCategory.FullHouse) return 'fullHouse';
+  if (category === HandCategory.FourOfAKind) return 'quads';
+  if (category === HandCategory.ThreeOfAKind) return hero[0]?.rank === hero[1]?.rank ? 'set' : 'trips';
+  return category === HandCategory.TwoPair ? 'twoPair' : 'pair';
+}
+
+function outsParts(hero: readonly Card[], board: readonly Card[], outs: readonly Card[]): OutsPart[] {
+  return OUTS_HANDS.flatMap((hand) => {
+    const cards = outs.filter((card) => outsHand(hero, board, card) === hand);
+    if (cards.length === 0) return [];
+    return [{ hand, count: cards.length, ranks: [...new Set(cards.map((card) => card.rank))].sort((a, b) => a - b), suit: cards[0]!.suit }];
+  });
+}
+
 export function explainOuts(situation: Situation, outs: Card[]): Explanation {
-  return { key: 'outs', params: { drawKind: situation.drawKind, outs: outs.length }, highlightedOuts: outs };
+  return {
+    key: 'outs',
+    params: { drawKind: situation.drawKind, outs: outs.length, parts: outsParts(situation.heroCards, situation.board, outs) },
+    highlightedOuts: outs,
+  };
 }
 
 export function explainHitChance(situation: Situation, counted: number, outs: Card[], cardsToCome: number): Explanation {

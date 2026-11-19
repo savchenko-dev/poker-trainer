@@ -1,7 +1,7 @@
-import type { DrawKind, Level } from './types';
+import type { DealtDraw, Level } from './types';
 
 export interface LevelConfig {
-  drawKinds: DrawKind[];
+  drawWeights: Partial<Record<DealtDraw, number>>;
   allowTurn: boolean;
   outsSpread: [number, number];
   percentSpread: [number, number];
@@ -9,9 +9,29 @@ export interface LevelConfig {
   timerSeconds: number | null;
 }
 
+const LEVEL_1_DRAWS: Partial<Record<DealtDraw, number>> = {
+  pocketPairToSet: 2,
+  gutshot: 1,
+  twoPairToFullHouse: 1,
+  pairToTwoPair: 2,
+  overcards: 2,
+  oesd: 2,
+  flushDraw: 2,
+};
+
+const LEVEL_2_DRAWS: Partial<Record<DealtDraw, number>> = {
+  ...LEVEL_1_DRAWS,
+  overcardGutshot: 1,
+  setToFullHouse: 1,
+  oesd: 1,
+  doubleGutshot: 1,
+  flushGutshot: 2,
+  pairPlusDraw: 2,
+};
+
 export const LEVELS: Record<Level, LevelConfig> = {
   1: {
-    drawKinds: ['flushDraw', 'oesd'],
+    drawWeights: LEVEL_1_DRAWS,
     allowTurn: false,
     outsSpread: [4, 8],
     percentSpread: [10, 15],
@@ -19,7 +39,7 @@ export const LEVELS: Record<Level, LevelConfig> = {
     timerSeconds: null,
   },
   2: {
-    drawKinds: ['flushDraw', 'oesd', 'gutshot', 'comboDraw', 'overcards', 'pairPlusDraw'],
+    drawWeights: LEVEL_2_DRAWS,
     allowTurn: false,
     outsSpread: [2, 4],
     percentSpread: [5, 8],
@@ -27,7 +47,7 @@ export const LEVELS: Record<Level, LevelConfig> = {
     timerSeconds: null,
   },
   3: {
-    drawKinds: ['flushDraw', 'oesd', 'gutshot', 'comboDraw', 'overcards', 'pairPlusDraw'],
+    drawWeights: { ...LEVEL_2_DRAWS, flushGutshot: 1, overcardFlush: 1, oesdPair: 2, flushOesd: 2 },
     allowTurn: true,
     outsSpread: [1, 2],
     percentSpread: [2, 4],

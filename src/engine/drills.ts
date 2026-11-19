@@ -21,12 +21,16 @@ import { LEVELS } from './levels';
 import { exactHitChance, potOdds, ruleOf2And4, toPercent } from './odds';
 import { findOuts } from './outs';
 import { int, pick, shuffle, type Rng } from './rng';
-import { generateSituation, sizeBet } from './situations';
-import { DRILL_TYPES, POSTFLOP_TYPES, type AnswerOption, type Card, type Drill, type DrillType, type Level, type Position, type PostflopDrillType, type PreflopAction, type Scenario, type Situation } from './types';
+import { expectedOuts, generateSituation, sizeBet } from './situations';
+import { DRILL_TYPES, POSTFLOP_TYPES, type AnswerOption, type Card, type DealtDraw, type Drill, type DrillType, type Level, type Position, type PostflopDrillType, type PreflopAction, type Scenario, type Situation } from './types';
 
 export const BLUFF_TYPES = ['alpha', 'mdf'] as const;
 
 export const OPEN_POSITIONS: Position[] = POSITIONS.filter((position) => position !== 'BB');
+
+const CLASSIC_OUTS = [2, 4, 5, 6, 8, 9, 12, 15];
+
+const CHEAPEST_ODDS = toPercent(potOdds(1, 6));
 
 const BLUFF_SIZES: Record<Level, number[]> = {
   1: [1 / 3, 1 / 2, 1],
@@ -50,11 +54,17 @@ function outsOf(situation: Situation) {
   return findOuts(situation.heroCards, situation.board, situation.drawKind);
 }
 
+function classicNeighbours(outs: number): number[] {
+  return [CLASSIC_OUTS.filter((value) => value < outs).pop(), CLASSIC_OUTS.find((value) => value > outs)].filter((value) => value !== undefined);
+}
+
 function callFoldSituation(level: Level, rng: Rng): Situation {
   const margin = LEVELS[level].callFoldMargin;
   const wantCall = rng() < 0.5;
+  const canCall = (kind: DealtDraw, boardSize: number) =>
+    toPercent(exactHitChance(expectedOuts(kind, boardSize), 50 - boardSize, 1)) - CHEAPEST_ODDS > margin;
   for (let attempt = 0; attempt < 200; attempt++) {
-    const situation = generateSituation(level, rng);
+    const situation = generateSituation(level, rng, wantCall ? canCall : undefined);
     const outs = outsOf(situation).length;
     const sized = sizeBet(rng, (pot, betToCall) => {
       const spot = { ...situation, pot, betToCall };
@@ -88,7 +98,7 @@ function drillFor(type: PostflopDrillType, level: Level, rng: Rng, situation: Si
     return {
       ...base,
       prompt: { key: 'outs', params: { drawKind: situation.drawKind } },
-      options: numberOptions(numericChoices(rng, outs.length, config.outsSpread, [1, 20]), outs.length, ''),
+      options: numberOptions(numericChoices(rng, outs.length, config.outsSpread, [1, 20], [], classicNeighbours(outs.length)), outs.length, ''),
       explanation: explainOuts(situation, outs),
     };
   }
@@ -209,6 +219,22 @@ export function buildDrill(type: DrillType, level: Level, rng: Rng): Drill {
   if (type === 'scenario') return scenarioDrill(pick(rng, scenarioPool(level)), level, rng);
   const situation = type === 'callFold' ? callFoldSituation(level, rng) : generateSituation(level, rng);
   return drillFor(type, level, rng, situation, situation.street === 'flop' && rng() < 0.5 ? 2 : 1);
+}
+
+function repeats(drills: readonly Drill[], drill: Drill): boolean {
+  const last = drills.at(-1);
+  if (last?.situation && last.situation.drawKind === drill.situation?.drawKind) return true;
+  const correct = (item: Drill) => item.options.find((option) => option.isCorrect)?.value;
+  return drill.type === 'outs' && drills.length >= 2 && drills.slice(-2).every((item) => correct(item) === correct(drill));
+}
+
+export function buildDrills(type: DrillType, level: Level, count: number, rng: Rng): Drill[] {
+  const drills: Drill[] = [];
+  while (drills.length < count) {
+    const drill = buildDrill(type, level, rng);
+    if (!repeats(drills, drill)) drills.push(drill);
+  }
+  return drills;
 }
 
 export function buildStepChain(level: Level, rng: Rng): Drill[] {

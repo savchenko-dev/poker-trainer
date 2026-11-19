@@ -5,7 +5,25 @@ export type Street = 'flop' | 'turn';
 export type Position = 'UTG' | 'MP' | 'CO' | 'BTN' | 'SB' | 'BB';
 export type Level = 1 | 2 | 3;
 export type DrillType = 'outs' | 'hitChance' | 'potOdds' | 'callFold' | 'alpha' | 'mdf' | 'preflopOpen' | 'scenario';
-export type DrawKind = 'flushDraw' | 'oesd' | 'gutshot' | 'comboDraw' | 'overcards' | 'pairPlusDraw';
+export type DealtDraw =
+  | 'gutshot'
+  | 'doubleGutshot'
+  | 'oesd'
+  | 'flushDraw'
+  | 'flushGutshot'
+  | 'flushOesd'
+  | 'overcards'
+  | 'overcardGutshot'
+  | 'overcardFlush'
+  | 'pairPlusDraw'
+  | 'pocketPairToSet'
+  | 'twoPairToFullHouse'
+  | 'setToFullHouse'
+  | 'pairToTwoPair'
+  | 'oesdPair';
+export type DrawKind = DealtDraw | 'comboDraw';
+export type OutsHand = 'flush' | 'straight' | 'set' | 'trips' | 'twoPair' | 'pair' | 'fullHouse' | 'quads';
+export interface OutsPart { hand: OutsHand; count: number; ranks: Rank[]; suit: Suit }
 export type PreflopAction = 'fold' | 'call' | 'raise';
 export type PostflopDrillType = 'outs' | 'hitChance' | 'potOdds' | 'callFold';
 
@@ -38,7 +56,7 @@ export interface PromptParams {
 }
 
 export interface ExplanationParams {
-  outs: { drawKind: DrawKind; outs: number };
+  outs: { drawKind: DrawKind; outs: number; parts: OutsPart[] };
   hitChance: { counted: number; trueCount: number; unseen: number; boardSize: number; cardsToCome: number; exact: number; trueExact: number; estimate: number };
   potOdds: { pot: number; bet: number; odds: number };
   callFold: { pot: number; bet: number; outs: number; unseen: number; hit: number; odds: number; call: boolean };
